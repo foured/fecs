@@ -7,7 +7,6 @@
 
 namespace fecs {
 
-
     class pool {
     public:
 

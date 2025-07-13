@@ -6,7 +6,7 @@
 
 #include "type_index.h"
 #include "types.h"
-#include "pool.h"
+#include "sparce_set.h"
 #include "type_traits.h"
 #include "util/log.h"
 
@@ -17,17 +17,14 @@ namespace fecs {
         virtual bool contains(entity_t entity) const = 0;
         virtual bool own(id_index_t id_index) const = 0;
         virtual void pack_pools() = 0;
-
-        virtual void print() const = 0;
     };
 
     template<typename... Ts>
     requires unique_types<Ts...> && (sizeof...(Ts) > 1)
     class group : public group_descriptor {
     public:
-        static constexpr size_t types_size = sizeof...(Ts);
-
-        using pools_array = std::array<pool*, types_size>;
+        using components = type_list<Ts...>;        
+        using pools_array = std::array<pool*, components::size>;
 
         group(pools_array&& pools)
             : _pools(std::move(pools)) {
@@ -95,13 +92,10 @@ namespace fecs {
             }
         }
 
-        void print() const override {
-            for(pool* p : _pools){
-                const auto& es = p->get_entities();
-                FECS_LOG << "Pool:" << FECS_NL;
-                for(auto e : es){
-                   FECS_LOG << "    " << e << FECS_NL;
-                }
+        template<typename Func>
+        void for_each(Func func) {
+            for(size_t i = 0; i < _next_index; i++){
+
             }
         }
 
@@ -125,6 +119,12 @@ namespace fecs {
                 return *iter;
             }
             return error_entity;
+        }
+
+        template<size_t index>
+        auto get_pool() {
+            using component_t = typename components::template get<index>;
+            return static_cast<sparce_set<component_t>*>(_pools[index]);
         }
 
     };

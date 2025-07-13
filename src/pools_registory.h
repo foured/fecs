@@ -28,13 +28,6 @@ namespace fecs {
             sparce_ptr->emplace(entity, std::forward<Args>(args)...);
         }
 
-        pool* get_pool(id_index_t comp_index) {
-            if(_pools_map.contains(comp_index)){
-                return _pools_map[comp_index];
-            }
-            return nullptr;
-        }
-
         template<typename Component>
         void remove_component(entity_t entity){
             pool* p = find_pool<Component>();
