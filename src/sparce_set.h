@@ -60,6 +60,10 @@ namespace fecs {
             return _packed[index];
         }
 
+        T& get_ref_directly(size_t idx){
+            return _packed[idx];
+        }
+
         void remove(entity_t entity) override {
             size_t index = get_index(entity);
             if (index == error_index) return;

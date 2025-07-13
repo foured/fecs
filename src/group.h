@@ -3,6 +3,9 @@
 #include <algorithm>
 #include <stddef.h>
 #include <array>
+#include <tuple>
+#include <type_traits>
+#include <utility>
 
 #include "type_index.h"
 #include "types.h"
@@ -93,9 +96,20 @@ namespace fecs {
         }
 
         template<typename Func>
+        requires std::is_invocable_v<Func, entity_t, Ts&...> || std::is_invocable_v<Func, Ts&...>
         void for_each(Func func) {
+            constexpr auto seq = std::make_index_sequence<components::size>{};
             for(size_t i = 0; i < _next_index; i++){
-
+                if constexpr (std::is_invocable_v<Func, entity_t, Ts&...>){
+                    entity_t entity = _pools[0]->get_entity_by_index(i);
+                    std::apply(func, 
+                        std::tuple_cat(
+                            std::make_tuple(entity),
+                            pack_components(i, seq)));
+                }
+                else {
+                    std::apply(func, pack_components(i, seq));
+                }
             }
         }
 
@@ -125,6 +139,11 @@ namespace fecs {
         auto get_pool() {
             using component_t = typename components::template get<index>;
             return static_cast<sparce_set<component_t>*>(_pools[index]);
+        }
+
+        template<size_t... indicies>
+        auto pack_components(size_t idx, std::index_sequence<indicies...>){
+            return std::forward_as_tuple(get_pool<indicies>()->get_ref_directly(idx)...);
         }
 
     };
