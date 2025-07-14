@@ -99,18 +99,6 @@ namespace fecs {
         template<typename Func>
         requires std::is_invocable_v<Func, Ts&...>
         void for_each(Func func) {
-            // for(size_t i = 0; i < _next_index; i++){
-            //     if constexpr (std::is_invocable_v<Func, entity_t, Ts&...>){
-            //         entity_t entity = _pools[0]->get_entity_by_index(i);
-            //         std::apply(func, 
-            //             std::tuple_cat(
-            //                 std::make_tuple(entity),
-            //                 pack_components(i, seq)));
-            //     }
-            //     else {
-            //         std::apply(func, pack_components(i, seq));
-            //     }
-            // }
             for_each_impl(func, components::sequence);
         }
 

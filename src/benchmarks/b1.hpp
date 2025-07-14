@@ -47,7 +47,7 @@ void test_fecs_groups(size_t iterations){
         registory.add_component<rigidbody>(i, vec3(i, i, i));
     }
 
-    auto g = registory.find_group<transform, rigidbody>();
+    auto g = registory.group<transform, rigidbody>();
 
     timer ft("g");
 

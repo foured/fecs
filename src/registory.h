@@ -38,10 +38,11 @@ namespace fecs {
             }
         }
 
+        // Packs all components of types for very fast accsess
         template<typename... Ts>
         requires unique_types<Ts...> && (sizeof...(Ts) > 1)
         void create_group(){
-            using group_t = group<Ts...>;
+            using group_t = fecs::group<Ts...>;
             id_index_t id_index = type_index<group_t>::value();
 
             if(_groups_map.contains(id_index)){
@@ -66,6 +67,19 @@ namespace fecs {
             descriptor->pack_pools();
         }
         
+        // Different 'iterators'
+
+        template<typename... Ts>
+        requires unique_types<Ts...> && (sizeof...(Ts) > 1)
+        fecs::group<Ts...>* group(){
+            using group_t = fecs::group<Ts...>;
+            auto it = _groups_map.find(type_index<group_t>::value());
+            if(it != _groups_map.end()){
+                return static_cast<group_t*>(it->second);
+            }
+            FECS_ASSERT_M(false, "Before using registory::grup you have to registory::create_group")
+        }
+
         template<typename... Ts>
         requires unique_types<Ts...> && (sizeof...(Ts) > 1)
         fecs::view<Ts...> view() {
@@ -97,18 +111,6 @@ namespace fecs {
                 return it->second;
             }
             FECS_LOG_WARN << "Returning nullptr in pools_registory::find_pool" << FECS_NL;
-            return nullptr;
-        }
-
-        template<typename... Ts>
-        requires unique_types<Ts...> && (sizeof...(Ts) > 1)
-        group<Ts...>* find_group(){
-            using group_t = group<Ts...>;
-            auto it = _groups_map.find(type_index<group_t>::value());
-            if(it != _groups_map.end()){
-                return static_cast<group_t*>(it->second);
-            }
-            FECS_LOG_WARN << "Returning nullptr in pools_registory::find_group" << FECS_NL;
             return nullptr;
         }
 
