@@ -42,9 +42,21 @@
     avg: 5.35296
     d: 5519125 ns
     avg: 5.51912
+4: (win, release, msvc)
+    u: 10658600 ns
+    avg: 10.6586
+    g: 2775000 ns
+    avg: 2.775
+    v: 5109400 ns
+    avg: 5.1094
+    r: 1266500 ns
+    avg: 1.2665
+    d: 1194300 ns
+    avg: 1.1943
 */
 
 int main() {
+
     b1(1'000'000);
 
     return 0;

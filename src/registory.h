@@ -3,6 +3,7 @@
 #include <cassert>
 #include <type_traits>
 #include <unordered_map>
+#include <memory>
 
 #include "type_traits.h"
 #include "types.h"
@@ -58,11 +59,11 @@ namespace fecs {
             typename group_t::pools_array pools = { find_or_create_pool<Ts>()... };
             
             auto[iter, inserted] = 
-                _groups_map.emplace(id_index, new group_t(std::move(pools)));
+                _groups_map.emplace(id_index, std::make_unique<group_t>(std::move(pools)));
 
             FECS_ASSERT_M(inserted, "Error while cereating group");
 
-            group_descriptor* descriptor = iter->second;
+            group_descriptor* descriptor = iter->second.get();
 
             descriptor->pack_pools();
         }
@@ -75,7 +76,7 @@ namespace fecs {
             using group_t = fecs::group<Ts...>;
             auto it = _groups_map.find(type_index<group_t>::value());
             if(it != _groups_map.end()){
-                return static_cast<group_t*>(it->second);
+                return static_cast<group_t*>(it->second.get());
             }
             FECS_ASSERT_M(false, "Before using registory::grup you have to registory::create_group")
         }
@@ -108,25 +109,25 @@ namespace fecs {
         pool* find_pool(id_index_t associated_component){
             auto it = _pools_map.find(associated_component);
             if(it != _pools_map.end()){
-                return it->second;
+                return it->second.get();
             }
             FECS_LOG_WARN << "Returning nullptr in pools_registory::find_pool" << FECS_NL;
             return nullptr;
         }
 
     private:
-        std::unordered_map<id_index_t, pool*> _pools_map;
-        std::unordered_map<id_index_t, group_descriptor*> _groups_map;
+        std::unordered_map<id_index_t, std::unique_ptr<pool>> _pools_map;
+        std::unordered_map<id_index_t, std::unique_ptr<group_descriptor>> _groups_map;
 
         template<typename T>
         pool* find_or_create_pool() {
             id_index_t index = type_index<T>::value();
 
             auto [iter, inserted] = _pools_map.try_emplace(
-                index, new sparce_set<T>()
+                index, std::make_unique<sparce_set<T>>()
             );
 
-            return iter->second;
+            return iter->second.get();
         }
 
     };

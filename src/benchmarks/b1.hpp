@@ -154,16 +154,16 @@ struct rigidbody_component : public component{
 };
 
 void test_usual(size_t iterations){
-    std::vector<instance*> instances;
+    std::vector<instance> instances;
     instances.reserve(iterations);
     for(size_t i = 0; i < iterations; i++){
-        instances.push_back(new instance(vec3(i, i, i)));
-        instances.back()->add_component<rigidbody_component>(vec3(i*2, i*2, i*2));
+        instances.emplace_back(vec3(i, i, i));
+        instances.back().add_component<rigidbody_component>(vec3(i*2, i*2, i*2));
     }
 
     timer ut("u");
-    for(auto * ins : instances){
-        ins->update();
+    for(auto&  ins : instances){
+        ins.update();
     }
     size_t dt = ut.end();
     std::cout << "avg: " << dt / float(iterations) << '\n';
