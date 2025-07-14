@@ -9,6 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Release>:Release>")
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
+
 if(RELEASE_BUILD)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 else()
@@ -28,11 +29,11 @@ file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*
 
 add_executable(${CMAKE_PROJECT_NAME})
 
-if(RELEASE_BUILD)
+# if(RELEASE_BUILD)
 
-else()
-	target_compile_definitions("${CMAKE_PROJECT_NAME}" PUBLIC LOGGING) 
-endif()
+# else()
+# 	target_compile_definitions("${CMAKE_PROJECT_NAME}" PUBLIC LOGGING) 
+# endif()
 
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE ${SRC_FILES})
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")

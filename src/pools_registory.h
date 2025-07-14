@@ -95,7 +95,7 @@ namespace fecs {
         std::unordered_map<id_index_t, group_descriptor*> _groups_map;
 
         template<typename T>
-        pool* find_or_create_pool(){
+        pool* find_or_create_pool() {
             id_index_t index = type_index<T>::value();
 
             auto [iter, inserted] = _pools_map.try_emplace(

@@ -3,6 +3,7 @@
 #include <type_traits>
 #include <tuple>
 #include <algorithm>
+#include <utility>
 #include <vector>
 
 #include "type_index.h"
@@ -25,6 +26,7 @@ namespace fecs {
         template<size_t index>
         using get = std::tuple_element_t<index, types>;
         static constexpr size_t size = sizeof...(Ts);
+        static constexpr auto sequence = std::make_index_sequence<size>{};
     };
 
     template<typename T, typename... Ts>

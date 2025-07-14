@@ -60,7 +60,7 @@ namespace fecs {
             return _packed[index];
         }
 
-        T& get_ref_directly(size_t idx){
+        T& get_ref_directly(size_t idx) {
             return _packed[idx];
         }
 
