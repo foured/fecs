@@ -149,7 +149,7 @@ namespace fecs {
 
         template<typename Func, size_t... Is>
         void for_each_impl(Func func, std::index_sequence<Is...>) {
-            for(size_t i = 0; i < _next_index; i++){
+            for(size_t i = 0; i < _next_index; ++i){
                 func(get_pool<Is>()->get_ref_directly(i)...);
             }
         }

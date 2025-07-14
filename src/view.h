@@ -5,6 +5,7 @@
 #include "type_traits.h"
 #include "types.h"
 #include <algorithm>
+#include <array>
 #include <type_traits>
 #include <utility>
 
@@ -23,10 +24,17 @@ namespace fecs {
     public:
         using components = type_list<Ts...>;
         using pools_array = std::array<pool*, components::size>;
+        using pools_to_check = std::array<pool*, components::size - 1>;
 
         view(pools_array&& pools)
             : _pools(std::move(pools)) {
                 _min_pool = get_min_pool();
+                size_t idx = 0;
+                for(size_t i = 0; i < components::size; ++i){
+                    if(_pools[i] != _min_pool){
+                        _checks[idx++] = _pools[i];
+                    }
+                }
             }
 
         template<typename Func>
@@ -37,6 +45,7 @@ namespace fecs {
 
     private:
         pools_array _pools;
+        pools_to_check _checks;
         pool* _min_pool;
 
         bool contains(entity_t entity) const{
@@ -65,16 +74,14 @@ namespace fecs {
         void for_each_impl(Func func, std::index_sequence<It...>){
             const auto& ents = _min_pool->get_entities();
             const size_t s = ents.size();
-            pool* tp = nullptr;
             size_t page, offset;
             entity_t e;
             for(size_t i = 0; i < s; ++i){
                 e = ents[i];
                 page = e / SPARCE_MAX_SIZE;
                 offset = e % SPARCE_MAX_SIZE;
-                for(size_t j = 0; j < components::size; ++j){
-                    tp = _pools[j];
-                    if(tp != _min_pool && !tp->contains(page, offset)){
+                for(size_t j = 0; j < components::size - 1; ++j){
+                    if(!_checks[j]->contains(page, offset)){
                         continue;
                     }
                 }
