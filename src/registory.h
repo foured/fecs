@@ -9,11 +9,13 @@
 #include "sparce_set.h"
 #include "type_index.h"
 #include "group.h"
+#include "view.h"
+#include "runner.h"
 #include "util/log.h"
 
 namespace fecs {
 
-    class pools_registory{
+    class registory{
     public:
 
         template<typename Component, typename... Args>
@@ -64,9 +66,29 @@ namespace fecs {
             descriptor->pack_pools();
         }
         
+        template<typename... Ts>
+        requires unique_types<Ts...> && (sizeof...(Ts) > 1)
+        fecs::view<Ts...> view() {
+            using view_t = fecs::view<Ts...>;
+
+            typename view_t::pools_array arr { find_pool<Ts>()... };
+            return view_t(std::move(arr));
+        }
+
+        template<typename T>
+        fecs::runner<T> runner(){
+            return fecs::runner<T>(find_pool<T>());
+        }
+
+        template<typename T, typename Func>
+        requires std::is_invocable_v<Func, T&>
+        void direct_for_each(Func func) {
+            find_pool<T>()->for_each(func);
+        }
+        
         template<typename Component>
-        pool* find_pool(){
-            return find_pool(type_index<Component>::value());
+        sparce_set<Component>* find_pool(){
+            return static_cast<sparce_set<Component>*>(find_pool(type_index<Component>::value()));
         }
 
         pool* find_pool(id_index_t associated_component){
@@ -80,11 +102,11 @@ namespace fecs {
 
         template<typename... Ts>
         requires unique_types<Ts...> && (sizeof...(Ts) > 1)
-        group_descriptor* find_group(){
+        group<Ts...>* find_group(){
             using group_t = group<Ts...>;
             auto it = _groups_map.find(type_index<group_t>::value());
             if(it != _groups_map.end()){
-                return it->second;
+                return static_cast<group_t*>(it->second);
             }
             FECS_LOG_WARN << "Returning nullptr in pools_registory::find_group" << FECS_NL;
             return nullptr;

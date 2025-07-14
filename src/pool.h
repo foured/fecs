@@ -43,6 +43,7 @@ namespace fecs {
         virtual void remove(entity_t entity) = 0;
         virtual size_t size() const = 0;
         virtual bool contains(entity_t entity) const = 0;
+        virtual bool contains(size_t page, size_t offset) const = 0;
         virtual void swap(entity_t ent1, entity_t ent2) = 0;
 
     protected:

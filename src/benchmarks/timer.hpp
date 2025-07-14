@@ -15,15 +15,18 @@ public:
         end();
     }
 
-    void end(){
+    size_t end(){
         if(!_ended){
             _ended = true;
             auto end = std::chrono::high_resolution_clock::now();
 
             size_t s = std::chrono::time_point_cast<std::chrono::nanoseconds>(_start).time_since_epoch().count();
             size_t e = std::chrono::time_point_cast<std::chrono::nanoseconds>(end).time_since_epoch().count();
-            std::cout << _name << ": " << (e - s) << " ns\n";
+            size_t d = e - s;
+            std::cout << _name << ": " << d << " ns\n";
+            return d;
         }
+        return 0;
     }
 
 private:

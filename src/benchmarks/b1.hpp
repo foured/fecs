@@ -1,4 +1,4 @@
-#include "../pools_registory.h"
+#include "../registory.h"
 #include "group.h"
 #include "timer.hpp"
 #include <type_traits>
@@ -39,23 +39,76 @@ struct rigidbody{
     vec3 vel;
 };
 
-void test_fecs(size_t entities){
-    fecs::pools_registory registory;
+void test_fecs_groups(size_t iterations){
+    fecs::registory registory;
     registory.create_group<transform, rigidbody>();
-    for(size_t i = 0; i < entities; i++){
+    for(size_t i = 0; i < iterations; i++){
         registory.add_component<transform>(i, vec3(i*2, i*2, i*2));
         registory.add_component<rigidbody>(i, vec3(i, i, i));
     }
 
-    auto g = static_cast<fecs::group<transform, rigidbody>*>(
-        registory.find_group<transform, rigidbody>()
-    );
+    auto g = registory.find_group<transform, rigidbody>();
 
-    timer ft("fecs update timer");
+    timer ft("g");
 
     g->for_each([](transform& t, rigidbody& r){
         t.pos += r.vel;
     });
+    size_t dt = ft.end();
+    std::cout << "avg: " << dt / float(iterations) << '\n';
+}
+
+void test_fecs_views(size_t iterations){
+    fecs::registory registory;
+    for(size_t i = 0; i < iterations; i++){
+        registory.add_component<transform>(i, vec3(i*2, i*2, i*2));
+        registory.add_component<rigidbody>(i, vec3(i, i, i));
+    }
+
+    auto v = registory.view<transform, rigidbody>();
+
+    timer ft("v");
+
+    v.for_each([](transform& t, rigidbody& r){
+        t.pos += r.vel;
+    });
+    size_t dt = ft.end();
+    std::cout << "avg: " << dt / float(iterations) << '\n';
+}
+
+void test_fecs_runner(size_t iterations){
+    fecs::registory registory;
+    for(size_t i = 0; i < iterations; i++){
+        registory.add_component<transform>(i, vec3(i*2, i*2, i*2));
+        registory.add_component<rigidbody>(i, vec3(i, i, i));
+    }
+
+    auto r = registory.runner<rigidbody>();
+
+    timer ft("r");
+
+    r.for_each([](rigidbody& r){
+        r.vel += vec3(1, 4.443, 0.123);
+    });
+
+    size_t dt = ft.end();
+    std::cout << "avg: " << dt / float(iterations) << '\n';
+}
+
+void test_fecs_direct(size_t iterations){
+    fecs::registory registory;
+    for(size_t i = 0; i < iterations; i++){
+        registory.add_component<transform>(i, vec3(i*2, i*2, i*2));
+        registory.add_component<rigidbody>(i, vec3(i, i, i));
+    }
+
+    timer ft("d");
+
+    registory.direct_for_each<rigidbody>([](rigidbody& r){
+        r.vel += vec3(1, 4.443, 0.123);
+    });
+    size_t dt = ft.end();
+    std::cout << "avg: " << dt / float(iterations) << '\n';
 }
 
 class instance;
@@ -108,13 +161,18 @@ void test_usual(size_t iterations){
         instances.back()->add_component<rigidbody_component>(vec3(i*2, i*2, i*2));
     }
 
-    timer ut("usial timer");
+    timer ut("u");
     for(auto * ins : instances){
         ins->update();
     }
+    size_t dt = ut.end();
+    std::cout << "avg: " << dt / float(iterations) << '\n';
 }
 
 void b1(size_t iterations){
     test_usual(iterations);
-    test_fecs(iterations);
+    test_fecs_groups(iterations);
+    test_fecs_views(iterations);
+    test_fecs_runner(iterations);
+    test_fecs_direct(iterations);
 }

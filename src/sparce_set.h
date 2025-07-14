@@ -11,6 +11,8 @@
 #include "util/log.h"
 #include "pool.h"
 
+#define  SPARCE_MAX_SIZE 512
+
 namespace fecs {
 
     template<typename T>
@@ -60,6 +62,17 @@ namespace fecs {
             return _packed[index];
         }
 
+        T& get_ref_directly_e(entity_t entity) {
+            size_t page = entity / SPARCE_MAX_SIZE;
+            size_t offset = entity % SPARCE_MAX_SIZE;
+
+            return _packed[_sparces[page][offset]];
+        }
+
+        T& get_ref_directly_e(size_t page, size_t offset) {
+            return _packed[_sparces[page][offset]];
+        }
+
         T& get_ref_directly(size_t idx) {
             return _packed[idx];
         }
@@ -92,11 +105,33 @@ namespace fecs {
         }
 
         bool contains(entity_t entity) const override{
-            return get_index(entity) != error_index;
+            size_t page = entity / SPARCE_MAX_SIZE;
+
+            if(page >= _sparces.size()){
+                return false;
+            }
+            size_t offset = entity % SPARCE_MAX_SIZE;
+
+            return _sparces[page][offset] != error_index;
         }
+
+        bool contains(size_t page, size_t offset) const override{
+            if(page > _sparces.size()) return false;
+            return _sparces[page][offset != error_index];
+        }
+
 
         size_t size() const override{
             return _packed.size();
+        }
+
+        template<typename Func>
+        requires std::is_invocable_v<Func, T&>
+        void for_each(Func func){
+            const size_t s = size();
+            for(size_t i = 0; i < s; ++i){
+                func(_packed[i]);
+            }
         }
 
     protected:
@@ -119,33 +154,32 @@ namespace fecs {
             set_index(entity, error_index);
         }
 
-    private:
-        static constexpr size_t sparce_max_size = 512;
+    private:            
         static constexpr size_t error_index = std::numeric_limits<size_t>::max();
         
-        using sparce = std::array<size_t, sparce_max_size>; 
+        using sparce = std::array<size_t, SPARCE_MAX_SIZE>; 
 
         std::vector<T> _packed;
         std::vector<sparce> _sparces;
 
         void set_index(entity_t entity, size_t index){
-            size_t page = entity / sparce_max_size;
-            size_t offset = entity % sparce_max_size;
+            size_t page = entity / SPARCE_MAX_SIZE;
 
-            if(page >= _sparces.size()){
+            if(page >= _sparces.size()) {
                 resize_sparces(page + 1);
             }
+            size_t offset = entity % SPARCE_MAX_SIZE;
 
             _sparces[page][offset] = index;
         }
 
         size_t get_index(entity_t entity) const {
-            size_t page = entity / sparce_max_size;
-            size_t offset = entity % sparce_max_size;
+            size_t page = entity / SPARCE_MAX_SIZE;
 
             if(page >= _sparces.size()){
                 return error_index;
             }
+            size_t offset = entity % SPARCE_MAX_SIZE;
 
             return _sparces[page][offset];
         }  
