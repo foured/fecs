@@ -1,22 +1,17 @@
 #pragma once
 
-#include "pool.h"
-#include "sparce_set.h"
-#include "type_traits.h"
-#include "types.h"
 #include <algorithm>
 #include <array>
 #include <type_traits>
 #include <utility>
 
+#include "../containers/sparce_set.h"
+#include "../core/type_traits.h"
+#include "../core/types.h"
+
 #include "benchmarks/timer.hpp"
 
 namespace fecs {
-
-    // struct view_descriptor{
-    //     virtual ~view_descriptor() = default;
-    //     //virtual bool contains(entity_t entity) const = 0;
-    // };
 
     template <typename... Ts>
     requires unique_types<Ts...> && (sizeof...(Ts) > 1)
@@ -28,14 +23,18 @@ namespace fecs {
 
         view(pools_array&& pools)
             : _pools(std::move(pools)) {
-                _min_pool = get_min_pool();
-                size_t idx = 0;
-                for(size_t i = 0; i < components::size; ++i){
-                    if(_pools[i] != _min_pool){
-                        _checks[idx++] = _pools[i];
-                    }
+                update_min_pool();
+            }
+
+        void update_min_pool() {
+            _min_pool = get_min_pool();
+            size_t idx = 0;
+            for (size_t i = 0; i < components::size; ++i) {
+                if (_pools[i] != _min_pool) {
+                    _checks[idx++] = _pools[i];
                 }
             }
+        }
 
         template<typename Func>
         requires std::is_invocable_v<Func, Ts&...>

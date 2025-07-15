@@ -1,8 +1,7 @@
 #pragma once
 
-#include "type_traits"
-#include "sparce_set.h"
-#include <type_traits>
+#include "../core/type_traits.h"
+#include "../containers/sparce_set.h"
 
 namespace fecs {
 

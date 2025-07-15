@@ -1,10 +1,5 @@
-#include "sparce_set.h"
-#include "type_index.h"
-#include "types.h"
-#include "util/log.h"
-#include "type_traits.h"
-#include "group.h"
-#include "registory.h"
+#include "core/registory.h"
+#include "core/type_traits.h"
 
 #include "benchmarks/b1.hpp"
 
@@ -55,10 +50,41 @@
     avg: 1.1943
 */
 
-int main() {
+struct position {
+    float x = 0;
+};
 
-    b1(1'000'000);
+struct rotation {
+    float x = 1;
+};
+
+struct ragdoll {
+    float x = 2;
+};
+
+struct renderable {
+    float x = 3;
+};
+
+int main() {
+    //b1(1'000'000);
+    
+    fecs::registory registory;
+
+    fecs::entity_t e1 = registory.create_entity();
+    registory.add_component<position>(e1);
+    registory.add_component<rotation>(e1);
+    registory.add_component<ragdoll>(e1);
+    registory.add_component<renderable>(e1);
+
+    registory.create_group<position, rotation, ragdoll, renderable>();
+
+    auto g = registory.group<position, rotation, ragdoll, renderable>();
+    auto gv = g->view<position, renderable, rotation>();
+
+    gv.for_each([](position& p, renderable& re, rotation& ro) {
+            std::cout << p.x << " " << re.x << " " << ro.x << "\n";
+        });
 
     return 0;
 }
-

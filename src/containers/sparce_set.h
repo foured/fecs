@@ -7,11 +7,11 @@
 #include <vector>
 #include <array>
 
-#include "types.h"
+#include "../core/types.h"
 #include "util/log.h"
 #include "pool.h"
 
-#define  SPARCE_MAX_SIZE 512
+#define SPARCE_MAX_SIZE 512
 
 namespace fecs {
 
@@ -123,6 +123,11 @@ namespace fecs {
 
         size_t size() const override{
             return _packed.size();
+        }
+
+        void shrink_to_fit() override {
+            _packed.shrink_to_fit();
+            _entities.shrink_to_fit();
         }
 
         template<typename Func>

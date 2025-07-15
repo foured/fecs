@@ -7,17 +7,47 @@
 
 #include "type_traits.h"
 #include "types.h"
-#include "sparce_set.h"
-#include "type_index.h"
-#include "group.h"
-#include "view.h"
-#include "runner.h"
-#include "util/log.h"
+#include "../containers/sparce_set.h"
+#include "../core/type_index.h"
+#include "../queues/group.h"
+#include "../queues/view.h"
+#include "../queues/runner.h"
+#include "../core/entity_link.h"
+#include "../util/log.h"
 
 namespace fecs {
 
     class registory{
     public:
+
+        // Entities management
+
+        entity_t create_entity() {
+            return _entity_counter++;
+        }
+
+        void destroy_entity(entity_t entity) {
+            for (auto iter = _pools_map.begin(); iter != _pools_map.end(); iter++) {
+                pool* p = iter->second.get();
+                if (p->contains(entity)) {
+                    p->remove(entity);
+                }
+            }
+            auto iter = _links_map.find(entity);
+            if (iter != _links_map.end()) {
+                iter->second.expire();
+            }
+        }
+
+        const entity_link& get_link(entity_t entity) {
+            auto [iter, inserted] = _links_map.try_emplace(
+                entity, entity
+            );
+
+            return iter->second;
+        }
+
+        // Components management
 
         template<typename Component, typename... Args>
         typename std::enable_if_t<std::is_constructible_v<Component, Args&&...>, void>
@@ -37,6 +67,15 @@ namespace fecs {
             if(p != nullptr){
                 p->remove(entity);
             }
+        }
+
+        template<typename Component>
+        bool has_component(entity_t entity) {
+            pool* p = find_pool<Component>();
+            if (p == nullptr) {
+                return false;
+            }
+            return p->contains(entity);
         }
 
         // Packs all components of types for very fast accsess
@@ -63,9 +102,7 @@ namespace fecs {
 
             FECS_ASSERT_M(inserted, "Error while cereating group");
 
-            group_descriptor* descriptor = iter->second.get();
-
-            descriptor->pack_pools();
+            iter->second->pack_pools();
         }
         
         // Different 'iterators'
@@ -101,6 +138,14 @@ namespace fecs {
             find_pool<T>()->for_each(func);
         }
         
+        // Help methods
+
+        void shrink_to_fit() {
+            for (auto it = _pools_map.begin(); it != _pools_map.end(); it++) {
+                it->second->shrink_to_fit();
+            }
+        }
+
         template<typename Component>
         sparce_set<Component>* find_pool(){
             return static_cast<sparce_set<Component>*>(find_pool(type_index<Component>::value()));
@@ -118,6 +163,8 @@ namespace fecs {
     private:
         std::unordered_map<id_index_t, std::unique_ptr<pool>> _pools_map;
         std::unordered_map<id_index_t, std::unique_ptr<group_descriptor>> _groups_map;
+        std::unordered_map<entity_t, entity_link> _links_map;
+        entity_t _entity_counter = 0;
 
         template<typename T>
         pool* find_or_create_pool() {

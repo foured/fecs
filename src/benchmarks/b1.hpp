@@ -1,5 +1,5 @@
-#include "../registory.h"
-#include "group.h"
+#include "../core/registory.h"
+#include "queues/group.h"
 #include "timer.hpp"
 #include <type_traits>
 #include <utility>

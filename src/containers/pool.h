@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include <vector>
 
-#include "types.h"
+#include "../core/types.h"
 
 namespace fecs {
 
@@ -45,6 +45,7 @@ namespace fecs {
         virtual bool contains(entity_t entity) const = 0;
         virtual bool contains(size_t page, size_t offset) const = 0;
         virtual void swap(entity_t ent1, entity_t ent2) = 0;
+        virtual void shrink_to_fit() = 0;
 
     protected:
         friend class owner;

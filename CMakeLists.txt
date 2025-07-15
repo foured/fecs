@@ -1,14 +1,16 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.5)
 
 project(fecs)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+message(STATUS "CMAKE_EXPORT_COMPILE_COMMANDS is ${CMAKE_EXPORT_COMPILE_COMMANDS}")
+
 # Static linking c++ runtime library
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Release>:Release>")
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-
 
 if(RELEASE_BUILD)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)

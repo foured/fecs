@@ -7,11 +7,12 @@
 #include <type_traits>
 #include <utility>
 
-#include "type_index.h"
-#include "types.h"
-#include "sparce_set.h"
-#include "type_traits.h"
-#include "util/log.h"
+#include "../core/type_index.h"
+#include "../core/types.h"
+#include "../core/type_traits.h"
+#include "../containers/sparce_set.h"
+#include "../util/log.h"
+#include "group_view.h"
 
 namespace fecs {
 
@@ -95,13 +96,21 @@ namespace fecs {
             }
         }
 
-        //std::is_invocable_v<Func, entity_t, Ts&...> || 
         template<typename Func>
         requires std::is_invocable_v<Func, Ts&...>
         void for_each(Func func) {
             for_each_impl(func, components::sequence);
         }
 
+        template<typename... Types>
+        requires (unique_types<Types...>) && (sizeof...(Types) > 1) && (components::template contains_all<Types...>)
+        group_view<Types...> view() {
+            using group_view_t = group_view<Types...>;
+            typename group_view_t::pools_array arr = { find_pool<Types>(components::sequence)... };
+
+            return group_view_t(arr, &_next_index);
+        }
+        
     private:
         pools_array _pools;
         size_t _next_index = 0;
@@ -140,6 +149,22 @@ namespace fecs {
             for(size_t i = 0; i < _next_index; ++i){
                 func(get_pool<Is>()->get_ref_directly(i)...);
             }
+        }
+
+        template<typename T, size_t... Is>
+            requires components::template contains_all<T>
+        pool* find_pool(std::index_sequence<Is...>) const {
+            using pool_t = sparce_set<T>*;
+
+            pool* result = nullptr;
+
+            (([&] {
+                if constexpr (std::is_same_v<pool_t, decltype(get_pool<Is>())>) {
+                    result = get_pool<Is>();
+                }
+            }()), ...);
+
+            return result;
         }
 
 
