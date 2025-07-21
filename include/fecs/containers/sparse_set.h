@@ -7,7 +7,7 @@
 #include <array>
 
 #include "../core/type_traits.h"
-#include "util/log.h"
+#include "../util/log.h"
 #include "pool.h"
 
 #define SPARSE_MAX_SIZE 512

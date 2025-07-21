@@ -9,8 +9,6 @@
 #include "../core/type_traits.h"
 #include "../core/types.h"
 
-#include "benchmarks/timer.hpp"
-
 namespace fecs {
 
     template <typename... Ts>
