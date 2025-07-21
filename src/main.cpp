@@ -1,4 +1,4 @@
-#include "core/registory.h"
+#include "core/registry.h"
 #include "core/type_traits.h"
 
 #include "benchmarks/b1.hpp"
@@ -67,24 +67,25 @@ struct renderable {
 };
 
 int main() {
-    //b1(1'000'000);
+    b1(1'000'000);
     
-    fecs::registory registory;
-
-    fecs::entity_t e1 = registory.create_entity();
-    registory.add_component<position>(e1);
-    registory.add_component<rotation>(e1);
-    registory.add_component<ragdoll>(e1);
-    registory.add_component<renderable>(e1);
-
-    registory.create_group<position, rotation, ragdoll, renderable>();
-
-    auto g = registory.group<position, rotation, ragdoll, renderable>();
-    auto gv = g->view<position, renderable, rotation>();
-
-    gv.for_each([](position& p, renderable& re, rotation& ro) {
-            std::cout << p.x << " " << re.x << " " << ro.x << "\n";
-        });
+    // fecs::registry registry;
+    //
+    // fecs::entity_t e1 = registry.create_entity();
+    // fecs::entity_t e2 = registry.create_entity();
+    // registry.add_component<position>(e1);
+    // registry.add_component<rotation>(e1);
+    // registry.add_component<ragdoll>(e1);
+    // registry.add_component<renderable>(e1);
+    //
+    // registry.create_group<position, rotation, ragdoll, renderable>();
+    //
+    // auto g = registry.group<position, rotation, ragdoll, renderable>();
+    // auto gv = g->view<position, renderable, rotation>();
+    //
+    // gv.for_each([](position& p, renderable& re, rotation& ro) {
+    //         std::cout << p.x << " " << re.x << " " << ro.x << "\n";
+    //     });
 
     return 0;
 }

@@ -1,4 +1,4 @@
-#include "../core/registory.h"
+#include "../core/registry.h"
 #include "queues/group.h"
 #include "timer.hpp"
 #include <type_traits>
@@ -40,7 +40,7 @@ struct rigidbody{
 };
 
 void test_fecs_groups(size_t iterations){
-    fecs::registory registory;
+    fecs::registry registory;
     registory.create_group<transform, rigidbody>();
     for(size_t i = 0; i < iterations; i++){
         registory.add_component<transform>(i, vec3(i*2, i*2, i*2));
@@ -59,7 +59,7 @@ void test_fecs_groups(size_t iterations){
 }
 
 void test_fecs_views(size_t iterations){
-    fecs::registory registory;
+    fecs::registry registory;
     for(size_t i = 0; i < iterations; i++){
         registory.add_component<transform>(i, vec3(i*2, i*2, i*2));
         registory.add_component<rigidbody>(i, vec3(i, i, i));
@@ -77,7 +77,7 @@ void test_fecs_views(size_t iterations){
 }
 
 void test_fecs_runner(size_t iterations){
-    fecs::registory registory;
+    fecs::registry registory;
     for(size_t i = 0; i < iterations; i++){
         registory.add_component<transform>(i, vec3(i*2, i*2, i*2));
         registory.add_component<rigidbody>(i, vec3(i, i, i));
@@ -96,7 +96,7 @@ void test_fecs_runner(size_t iterations){
 }
 
 void test_fecs_direct(size_t iterations){
-    fecs::registory registory;
+    fecs::registry registory;
     for(size_t i = 0; i < iterations; i++){
         registory.add_component<transform>(i, vec3(i*2, i*2, i*2));
         registory.add_component<rigidbody>(i, vec3(i, i, i));

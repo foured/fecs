@@ -7,54 +7,58 @@
 
 namespace fecs {
 
-    class pool {
+    template<typename Key>
+    requires is_index_type<Key>
+    class pool_template {
     public:
 
         class owner{
         public:
             virtual ~owner() = default;
 
-            virtual void trigger_emplace(entity_t entity) = 0;
-            virtual void trigger_remove(entity_t entity) = 0;
+            virtual void trigger_emplace(Key key) = 0;
+            virtual void trigger_remove(Key key) = 0;
 
         protected:
-            void set_ownership(pool* p){
+            void set_ownership(pool_template* p){
                 p->_owner = this;
             }
 
-            void remove_by_self(pool* p, entity_t entity){
-                p->remove_by_self(entity);
+            static void remove_by_self(pool_template* p, Key key){
+                p->remove_by_self(key);
             }
 
         };
 
-        using entities_container = std::vector<entity_t>;
+        using keys_container = std::vector<Key>;
 
-        virtual ~pool() = default;
+        virtual ~pool_template() = default;
 
-        const entities_container& get_entities() const{
-            return _entities;
+        [[nodiscard]] const keys_container& get_keys() const{
+            return _keys;
         }
 
-        entity_t get_entity_by_index(size_t index) const{
-            return _entities[index];
+        [[nodiscard]] Key get_key_by_index(size_t index) const{
+            return _keys[index];
         }
 
-        virtual void remove(entity_t entity) = 0;
-        virtual size_t size() const = 0;
-        virtual bool contains(entity_t entity) const = 0;
-        virtual bool contains(size_t page, size_t offset) const = 0;
-        virtual void swap(entity_t ent1, entity_t ent2) = 0;
+        virtual void remove(Key key) = 0;
+        [[nodiscard]] virtual size_t size() const = 0;
+        [[nodiscard]] virtual bool contains(Key key) const = 0;
+        [[nodiscard]] virtual bool contains(size_t page, size_t offset) const = 0;
+        virtual void swap(Key k1, Key k2) = 0;
         virtual void shrink_to_fit() = 0;
 
     protected:
         friend class owner;
 
-        entities_container _entities;
+        keys_container _keys;
         owner* _owner = nullptr;
 
-        virtual void remove_by_self(entity_t entity) = 0;
+        virtual void remove_by_self(Key key) = 0;
 
     };
+
+    using pool = pool_template<entity_t>;
 
 }

@@ -3,7 +3,7 @@
 #include <array>
 
 #include "../core/type_traits.h"
-#include "../containers/sparce_set.h"
+#include "../containers/sparse_set.h"
 
 namespace fecs {
 
@@ -30,7 +30,7 @@ namespace fecs {
         template<size_t index>
         auto get_pool() const {
             using component_t = typename components::template get<index>;
-            return static_cast<sparce_set<component_t>*>(_pools[index]);
+            return static_cast<sparse_set<component_t>*>(_pools[index]);
         }
 
         template<typename Func, size_t... Is>

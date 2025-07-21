@@ -5,7 +5,7 @@
 #include <type_traits>
 #include <utility>
 
-#include "../containers/sparce_set.h"
+#include "../containers/sparse_set.h"
 #include "../core/type_traits.h"
 #include "../core/types.h"
 
@@ -21,8 +21,8 @@ namespace fecs {
         using pools_array = std::array<pool*, components::size>;
         using pools_to_check = std::array<pool*, components::size - 1>;
 
-        view(pools_array&& pools)
-            : _pools(std::move(pools)) {
+        view(const pools_array& pools)
+            : _pools(pools) {
                 update_min_pool();
             }
 
@@ -59,7 +59,7 @@ namespace fecs {
         template<size_t index>
         auto get_pool() const {
             using component_t = typename components::template get<index>;
-            return static_cast<sparce_set<component_t>*>(_pools[index]);
+            return static_cast<sparse_set<component_t>*>(_pools[index]);
         }
 
         pool* get_min_pool() const {
@@ -71,14 +71,14 @@ namespace fecs {
 
         template<typename Func, size_t... It>
         void for_each_impl(Func func, std::index_sequence<It...>){
-            const auto& ents = _min_pool->get_entities();
+            const auto& ents = _min_pool->get_keys();
             const size_t s = ents.size();
             size_t page, offset;
             entity_t e;
             for(size_t i = 0; i < s; ++i){
                 e = ents[i];
-                page = e / SPARCE_MAX_SIZE;
-                offset = e % SPARCE_MAX_SIZE;
+                page = e / SPARSE_MAX_SIZE;
+                offset = e % SPARSE_MAX_SIZE;
                 for(size_t j = 0; j < components::size - 1; ++j){
                     if(!_checks[j]->contains(page, offset)){
                         continue;

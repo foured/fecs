@@ -10,7 +10,7 @@
 #include "../core/type_index.h"
 #include "../core/types.h"
 #include "../core/type_traits.h"
-#include "../containers/sparce_set.h"
+#include "../containers/sparse_set.h"
 #include "../util/log.h"
 #include "group_view.h"
 
@@ -30,8 +30,8 @@ namespace fecs {
         using components = type_list<Ts...>;        
         using pools_array = std::array<pool*, components::size>;
 
-        group(pools_array&& pools)
-            : _pools(std::move(pools)) {
+        group(const pools_array& pools)
+            : _pools(pools) {
                 for(pool* p : _pools){
                    set_ownership(p);
                 }
@@ -55,7 +55,7 @@ namespace fecs {
                 [](const pool* a, const pool* b) {
                     return a->size() < b->size();
                 });
-            const auto& entities = min_pool->get_entities();
+            const auto& entities = min_pool->get_keys();
 
             if(entities.empty()){
                 return;
@@ -65,9 +65,9 @@ namespace fecs {
 
             for(size_t i = 0; i < entities.size(); i++) {
                 if(contains(entities[i])){
-                    entity_t contained = min_pool->get_entity_by_index(i);
+                    entity_t contained = min_pool->get_key_by_index(i);
                     for(pool* p : _pools) {
-                        entity_t target = p->get_entity_by_index(_next_index);
+                        entity_t target = p->get_key_by_index(_next_index);
                         p->swap(contained, target);
                     }
                     _next_index++;
@@ -77,7 +77,7 @@ namespace fecs {
 
         void trigger_emplace(entity_t entity) override{
             if(contains(entity)){
-                entity_t target = _pools[0]->get_entity_by_index(_next_index);
+                entity_t target = _pools[0]->get_key_by_index(_next_index);
                 for(pool* p : _pools){
                     p->swap(target, entity);
                 }
@@ -88,7 +88,7 @@ namespace fecs {
         void trigger_remove(entity_t entity) override{
             if(contains(entity)){
                 size_t last_packed_index = --_next_index;
-                entity_t target = _pools[0]->get_entity_by_index(last_packed_index);
+                entity_t target = _pools[0]->get_key_by_index(last_packed_index);
                 for (pool *p : _pools) {
                     p->swap(entity, target);
                     remove_by_self(p, entity);
@@ -116,7 +116,7 @@ namespace fecs {
         size_t _next_index = 0;
 
         entity_t find_swapable(pool* p, size_t start_index){
-            const auto& entities = p->get_entities();
+            const auto& entities = p->get_keys();
 
             if (start_index >= entities.size()) {
                 return error_entity;
@@ -136,7 +136,7 @@ namespace fecs {
         template<size_t index>
         auto get_pool() const {
             using component_t = typename components::template get<index>;
-            return static_cast<sparce_set<component_t>*>(_pools[index]);
+            return static_cast<sparse_set<component_t>*>(_pools[index]);
         }
 
         template<size_t... indicies>
@@ -152,9 +152,9 @@ namespace fecs {
         }
 
         template<typename T, size_t... Is>
-            requires components::template contains_all<T>
+        requires components::template contains_all<T>
         pool* find_pool(std::index_sequence<Is...>) const {
-            using pool_t = sparce_set<T>*;
+            using pool_t = sparse_set<T>*;
 
             pool* result = nullptr;
 
@@ -166,7 +166,6 @@ namespace fecs {
 
             return result;
         }
-
 
     };
 
