@@ -98,7 +98,7 @@ namespace fecs {
             if (group_u_ptr != nullptr) {
                 return static_cast<group_t*>(group_u_ptr->get());
             }
-            FECS_ASSERT_M(false, "Before using registory::group you have to registory::create_group")
+            FECS_ASSERT_M(false, "Before using registory::group you have to registory::create_group");
         }
 
         template<typename... Ts>

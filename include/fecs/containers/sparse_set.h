@@ -14,50 +14,6 @@
 
 namespace fecs {
 
-    // Why do I need this if I can use _packed::iterator???
-
-    // template <typename T>
-    // class sparse_set_template_iterator {
-    // public:
-    //     using iterator_category = std::contiguous_iterator_tag;
-    //     using difference_type = std::ptrdiff_t;
-    //     using value_type = T;
-    //     using pointer = value_type*;
-    //     using reference = value_type&;
-    //
-    //     sparse_set_template_iterator() : _ptr(nullptr) { }
-    //     explicit sparse_set_template_iterator(const pointer ptr) : _ptr(ptr) { }
-    //
-    //     reference operator*() const { return *_ptr; }
-    //     pointer operator->() const { return _ptr; }
-    //     reference operator[](difference_type n) const { return _ptr[n]; }
-    //
-    //     sparse_set_template_iterator& operator++() { ++_ptr; return *this; }
-    //     sparse_set_template_iterator operator++(int) { sparse_set_template_iterator tmp = *this; ++_ptr; return tmp; }
-    //     sparse_set_template_iterator& operator--() { --_ptr; return *this; }
-    //     sparse_set_template_iterator operator--(int) { sparse_set_template_iterator tmp = *this; --_ptr; return tmp; }
-    //
-    //     sparse_set_template_iterator operator+(difference_type n) const { return sparse_set_template_iterator(_ptr + n); }
-    //     sparse_set_template_iterator operator-(difference_type n) const { return sparse_set_template_iterator(_ptr - n); }
-    //     difference_type operator-(const sparse_set_template_iterator& rhs) const { return _ptr - rhs._ptr; }
-    //
-    //     sparse_set_template_iterator& operator+=(difference_type n) { _ptr += n; return *this; }
-    //     sparse_set_template_iterator& operator-=(difference_type n) { _ptr -= n; return *this; }
-    //
-    //     bool operator==(const sparse_set_template_iterator& other) const { return _ptr == other._ptr; }
-    //     bool operator!=(const sparse_set_template_iterator& other) const { return _ptr != other._ptr; }
-    //     bool operator<(const sparse_set_template_iterator& other) const { return _ptr < other._ptr; }
-    //     bool operator>(const sparse_set_template_iterator& other) const { return _ptr > other._ptr; }
-    //     bool operator<=(const sparse_set_template_iterator& other) const { return _ptr <= other._ptr; }
-    //     bool operator>=(const sparse_set_template_iterator& other) const { return _ptr >= other._ptr; }
-    //
-    //     friend sparse_set_template_iterator operator+(difference_type n, const sparse_set_template_iterator& rhs) { return rhs + n; }
-    //
-    // private:
-    //     pointer _ptr;
-    //
-    // };
-
     template<typename Key, typename T, size_t chunk_size = 512>
     requires is_index_type<Key> && (!std::is_pointer_v<T>)
     class sparse_set_template : public pool_template<Key> {
@@ -116,43 +72,6 @@ namespace fecs {
             return index;
         }
 
-        T* get_ptr(Key key) {
-            size_t index = get_index(key);
-
-            if(index == error_index) {
-                return nullptr;
-            }
-
-            return &_packed[index];
-        }
-
-        T& get_ref(Key key) {
-            size_t index = get_index(key);
-
-            FECS_ASSERT(index != error_index);
-
-            return _packed[index];
-        }
-
-        T& get_ref_directly_e(Key key) {
-            size_t page = key / chunk_size;
-            size_t offset = key % chunk_size;
-
-            return _packed[_sparses[page][offset]];
-        }
-
-        T& get_ref_directly_e(size_t page, size_t offset) {
-            return _packed[_sparses[page][offset]];
-        }
-
-        T& get_ref_directly(size_t idx) {
-            return _packed[idx];
-        }
-
-        T* get_ptr_directly(size_t idx) {
-            return &_packed[idx];
-        }
-
         void remove(Key key) override {
             size_t index = get_index(key);
             if (index == error_index) return;
@@ -196,7 +115,6 @@ namespace fecs {
             return _sparses[page][offset != error_index];
         }
 
-
         size_t size() const override{
             return _packed.size();
         }
@@ -213,6 +131,43 @@ namespace fecs {
             for(size_t i = 0; i < s; ++i){
                 func(_packed[i]);
             }
+        }
+
+        T* get_ptr(Key key) {
+            size_t index = get_index(key);
+
+            if(index == error_index) {
+                return nullptr;
+            }
+
+            return &_packed[index];
+        }
+
+        T& get_ref(Key key) {
+            size_t index = get_index(key);
+
+            FECS_ASSERT(index != error_index);
+
+            return _packed[index];
+        }
+
+        T& get_ref_directly_e(Key key) {
+            size_t page = key / chunk_size;
+            size_t offset = key % chunk_size;
+
+            return _packed[_sparses[page][offset]];
+        }
+
+        T& get_ref_directly_e(size_t page, size_t offset) {
+            return _packed[_sparses[page][offset]];
+        }
+
+        T& get_ref_directly(size_t idx) {
+            return _packed[idx];
+        }
+
+        T* get_ptr_directly(size_t idx) {
+            return &_packed[idx];
         }
 
         iterator begin() {
