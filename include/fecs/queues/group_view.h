@@ -18,7 +18,7 @@ namespace fecs {
             : _pools(pools), _next_index(next_index) { }
 
         template<typename Func>
-        requires std::is_invocable_v<Func, Ts&...>
+        requires std::is_invocable_v<Func, Ts&...> || std::is_invocable_v<Func, entity_t, Ts&...>
         void for_each(Func func){
             for_each_impl(func, components::sequence);
         }
@@ -35,8 +35,16 @@ namespace fecs {
 
         template<typename Func, size_t... Is>
         void for_each_impl(Func func, std::index_sequence<Is...>) {
-            for(size_t i = 0; i < *_next_index; ++i){
-                func(get_pool<Is>()->get_ref_directly(i)...);
+            if constexpr (std::is_invocable_v<Func, Ts&...>) {
+                for(size_t i = 0; i < *_next_index; ++i){
+                    func(get_pool<Is>()->get_ref_directly(i)...);
+                }
+            }
+            else {
+                pool* f_pool = _pools[0];
+                for(size_t i = 0; i < *_next_index; ++i){
+                    func(f_pool->get_key_by_index(i), get_pool<Is>()->get_ref_directly(i)...);
+                }
             }
         }
 

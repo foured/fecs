@@ -125,11 +125,18 @@ namespace fecs {
         }
 
         template<typename Func>
-        requires std::is_invocable_v<Func, T&>
+        requires std::is_invocable_v<Func, T&> || std::is_invocable_v<Func, entity_t, T&>
         void for_each(Func func){
             const size_t s = size();
-            for(size_t i = 0; i < s; ++i){
-                func(_packed[i]);
+            if constexpr (std::is_invocable_v<Func, T&>) {
+                for(size_t i = 0; i < s; ++i){
+                    func(_packed[i]);
+                }
+            }
+            else {
+                for(size_t i = 0; i < s; ++i){
+                    func(_keys[i], _packed[i]);
+                }
             }
         }
 

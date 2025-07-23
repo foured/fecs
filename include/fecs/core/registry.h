@@ -99,6 +99,7 @@ namespace fecs {
                 return static_cast<group_t*>(group_u_ptr->get());
             }
             FECS_ASSERT_M(false, "Before using registory::group you have to registory::create_group");
+            return nullptr;
         }
 
         template<typename... Ts>
@@ -116,7 +117,7 @@ namespace fecs {
         }
 
         template<typename T, typename Func>
-        requires std::is_invocable_v<Func, T&>
+        requires std::is_invocable_v<Func, T&> || std::is_invocable_v<Func, entity_t, T&>
         void direct_for_each(Func func) {
             find_pool<T>()->for_each(func);
         }

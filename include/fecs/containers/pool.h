@@ -38,7 +38,7 @@ namespace fecs {
             return _keys;
         }
 
-        [[nodiscard]] Key get_key_by_index(size_t index) const{
+        [[nodiscard]] Key get_key_by_index(const size_t index) const {
             return _keys[index];
         }
 

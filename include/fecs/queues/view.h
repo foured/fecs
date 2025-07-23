@@ -35,7 +35,7 @@ namespace fecs {
         }
 
         template<typename Func>
-        requires std::is_invocable_v<Func, Ts&...>
+        requires std::is_invocable_v<Func, Ts&...> || std::is_invocable_v<Func, entity_t, Ts&...>
         void for_each(Func func){
             for_each_impl(func, components::sequence);
         }
@@ -73,16 +73,31 @@ namespace fecs {
             const size_t s = ents.size();
             size_t page, offset;
             entity_t e;
-            for(size_t i = 0; i < s; ++i){
-                e = ents[i];
-                page = e / SPARSE_MAX_SIZE;
-                offset = e % SPARSE_MAX_SIZE;
-                for(size_t j = 0; j < components::size - 1; ++j){
-                    if(!_checks[j]->contains(page, offset)){
-                        continue;
+            if constexpr (std::is_invocable_v<Func, Ts&...>) {
+                for(size_t i = 0; i < s; ++i){
+                    e = ents[i];
+                    page = e / SPARSE_MAX_SIZE;
+                    offset = e % SPARSE_MAX_SIZE;
+                    for(size_t j = 0; j < components::size - 1; ++j){
+                        if(!_checks[j]->contains(page, offset)){
+                            continue;
+                        }
                     }
+                    func(get_pool<It>()->get_ref_directly_e(page, offset)...);
                 }
-                func(get_pool<It>()->get_ref_directly_e(page, offset)...);
+            }
+            else {
+                for(size_t i = 0; i < s; ++i) {
+                    e = ents[i];
+                    page = e / SPARSE_MAX_SIZE;
+                    offset = e % SPARSE_MAX_SIZE;
+                    for(size_t j = 0; j < components::size - 1; ++j){
+                        if(!_checks[j]->contains(page, offset)){
+                            continue;
+                        }
+                    }
+                    func(e, get_pool<It>()->get_ref_directly_e(page, offset)...);
+                }
             }
         }
 

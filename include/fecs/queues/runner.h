@@ -14,7 +14,7 @@ namespace fecs {
             : _pool(sst) {}
 
         template<typename Func>
-        requires std::is_invocable_v<Func, T&>
+        requires std::is_invocable_v<Func, T&> || std::is_invocable_v<Func, entity_t, T&>
         void for_each(Func func){
             _pool->for_each(func);
         }
