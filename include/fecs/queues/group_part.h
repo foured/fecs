@@ -9,12 +9,12 @@ namespace fecs {
 
     template<typename... Ts>
     requires unique_types<Ts...> && (sizeof...(Ts) > 1)
-    class group_view {
+    class group_part {
     public:
         using components = type_list<Ts...>;
         using pools_array = std::array<pool*, components::size>;
 
-        group_view(const pools_array& pools, size_t* next_index)
+        group_part(const pools_array& pools, size_t* next_index)
             : _pools(pools), _next_index(next_index) { }
 
         template<typename Func>

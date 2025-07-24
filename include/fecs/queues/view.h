@@ -73,6 +73,7 @@ namespace fecs {
             const size_t s = ents.size();
             size_t page, offset;
             entity_t e;
+            bool passed = true;
             if constexpr (std::is_invocable_v<Func, Ts&...>) {
                 for(size_t i = 0; i < s; ++i){
                     e = ents[i];
@@ -80,8 +81,13 @@ namespace fecs {
                     offset = e % SPARSE_MAX_SIZE;
                     for(size_t j = 0; j < components::size - 1; ++j){
                         if(!_checks[j]->contains(page, offset)){
-                            continue;
+                            passed = false;
+                            break;
                         }
+                    }
+                    if (!passed) {
+                        passed = true;
+                        break;
                     }
                     func(get_pool<It>()->get_ref_directly_e(page, offset)...);
                 }
@@ -93,8 +99,13 @@ namespace fecs {
                     offset = e % SPARSE_MAX_SIZE;
                     for(size_t j = 0; j < components::size - 1; ++j){
                         if(!_checks[j]->contains(page, offset)){
-                            continue;
+                            passed = false;
+                            break;
                         }
+                    }
+                    if (!passed) {
+                        passed = true;
+                        break;
                     }
                     func(e, get_pool<It>()->get_ref_directly_e(page, offset)...);
                 }
