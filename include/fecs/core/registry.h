@@ -64,6 +64,16 @@ namespace fecs {
             return p->contains(entity);
         }
 
+        template<typename... Ts>
+        void create_group(group_args_descriptor<pack_part<Ts...>, view_part<>>) {
+            create_group<Ts...>();
+        }
+
+        template<typename... PTs, typename... VTs>
+        void create_group(group_args_descriptor<pack_part<PTs...>, view_part<VTs...>>) {
+            create_group<PTs...>(view_part<VTs...>{});
+        }
+
         // Packs all components of types for very fast access
         template<typename... Ts>
         requires unique_types<Ts...> && (sizeof...(Ts) > 1)
@@ -74,7 +84,7 @@ namespace fecs {
             if(_groups.contains(id_index)){
                 return;
             }
-            
+
             for(auto& g_uptr : _groups){
                 if(((g_uptr->own(type_index<Ts>::value())) || ...)){
                     FECS_ASSERT_M(false, "Groups conflict: only one group can own compoent");
@@ -82,7 +92,7 @@ namespace fecs {
             }
 
             typename group_t::p_pools_array pools = { find_or_create_pool<Ts>()... };
-            
+
             size_t index = _groups.emplace(id_index, std::make_unique<group_t>(pools));
 
             _groups.get_ref_directly(index)->pack_pools();
@@ -116,6 +126,16 @@ namespace fecs {
         // Different 'iterators'
 
         template<typename... Ts>
+        fecs::group<pack_part<Ts...>, view_part<>>* group(group_args_descriptor<pack_part<Ts...>, view_part<>>) {
+            return group<Ts...>();
+        }
+
+        template<typename... PTs, typename... VTs>
+        fecs::group<pack_part<PTs...>, view_part<VTs...>>* group(group_args_descriptor<pack_part<PTs...>, view_part<VTs...>>) {
+            return group<PTs...>(view_part<VTs...>{});
+        }
+
+        template<typename... Ts>
         requires unique_types<Ts...> && (sizeof...(Ts) > 1)
         fecs::group<pack_part<Ts...>, view_part<>>* group(){
             using group_t = fecs::group<pack_part<Ts...>, view_part<>>;
@@ -145,7 +165,7 @@ namespace fecs {
             using view_t = fecs::view<Ts...>;
 
             typename view_t::pools_array arr { find_pool<Ts>()... };
-            return view_t(arr); 
+            return view_t(arr);
         }
 
         template<typename T>
@@ -158,7 +178,7 @@ namespace fecs {
         void direct_for_each(Func func) {
             find_pool<T>()->for_each(func);
         }
-        
+
         // Help methods
 
         void shrink_to_fit() {
@@ -193,25 +213,6 @@ namespace fecs {
             size_t index = _pools.try_emplace(t_index, std::make_unique<sparse_set<T>>());
 
             return _pools.get_ref_directly(index).get();
-        }
-
-
-        template<typename... PTs, typename... VTs>
-        bool group_creation_setup(view_part<VTs...>) const{
-            using group_t = fecs::group<pack_part<VTs...>, view_part<VTs...>>;
-
-            if(_groups.contains(type_index<group_t>::value())){
-                return false;
-            }
-
-            for(auto& g_uptr : _groups){
-                if(((g_uptr->own(type_index<PTs>::value())) || ...)){
-                    FECS_ASSERT_M(false, "Groups conflict: only one group can own compoent");
-                    return false;
-                }
-            }
-
-            return true;
         }
 
     };
