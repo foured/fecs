@@ -2,11 +2,7 @@
 
 #include <type_traits>
 #include <tuple>
-#include <algorithm>
 #include <utility>
-#include <vector>
-
-#include "type_index.h"
 
 namespace fecs {
 

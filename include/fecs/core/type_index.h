@@ -1,7 +1,5 @@
 #pragma once
 
-#include <stddef.h>
-
 namespace fecs {
 
     using id_index_t = size_t;

@@ -9,4 +9,10 @@ namespace fecs {
 
     constexpr entity_t error_entity = std::numeric_limits<entity_t>::max();
 
+    template<typename... Ts>
+    class pack_part{};
+
+    template<typename... Ts>
+    class view_part{};
+
 }

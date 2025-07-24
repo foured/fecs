@@ -2,7 +2,6 @@
 
 #include <cassert>
 #include <type_traits>
-#include <unordered_map>
 #include <memory>
 
 #include "type_traits.h"
@@ -12,6 +11,7 @@
 #include "../queues/group.h"
 #include "../queues/view.h"
 #include "../queues/runner.h"
+#include "../queues/group_slice.h"
 #include "../util/log.h"
 
 namespace fecs {
@@ -86,8 +86,8 @@ namespace fecs {
             }
 
             for(auto& g_uptr : _groups){
-                if(((g_uptr->own(type_index<Ts>::value())) || ...)){
-                    FECS_ASSERT_M(false, "Groups conflict: only one group can own compoent");
+                if(((g_uptr->own<Ts>()) || ...)){
+                    FECS_ASSERT_M(false, "Groups conflict: only one group can own component");
                 }
             }
 
@@ -109,8 +109,8 @@ namespace fecs {
             }
 
             for(auto& g_uptr : _groups){
-                if(((g_uptr->own(type_index<PTs>::value())) || ...)){
-                    FECS_ASSERT_M(false, "Groups conflict: only one group can own compoent");
+                if(((g_uptr->own<PTs>()) || ...)){
+                    FECS_ASSERT_M(false, "Groups conflict: only one group can own component");
                 }
             }
 
@@ -171,6 +171,45 @@ namespace fecs {
         template<typename T>
         fecs::runner<T> runner(){
             return fecs::runner<T>(find_pool<T>());
+        }
+
+        template<typename... Ts>
+        fecs::group_slice<pack_part<Ts...>, view_part<>> group_slice() {
+            using slice_t = fecs::group_slice<pack_part<Ts...>, view_part<>>;
+
+            const size_t* ni = nullptr;
+            for (const auto& g : _groups) {
+                if (g->own_all<Ts...>()) {
+                    ni = g->get_next_index_ptr();
+                    break;
+                }
+            }
+
+            if (ni) {
+                typename slice_t::p_pools_array arr { find_pool<Ts>()... };
+                return slice_t(arr, ni);
+            }
+            throw std::runtime_error("No group owns the components from which you are trying to make a slice.");
+        }
+
+        template<typename... PTs, typename... VTs>
+        fecs::group_slice<pack_part<PTs...>, view_part<VTs...>> group_slice(view_part<VTs...>) {
+            using slice_t = fecs::group_slice<pack_part<PTs...>, view_part<VTs...>>;
+
+            const size_t* ni = nullptr;
+            for (const auto& g : _groups) {
+                if (g->own_all<PTs...>()) {
+                    ni = g->get_next_index_ptr();
+                    break;
+                }
+            }
+
+            if (ni) {
+                typename slice_t::p_pools_array p_arr { find_pool<PTs>()... };
+                typename slice_t::v_pools_array v_arr { find_pool<VTs>()... };
+                return slice_t(p_arr, v_arr, ni);
+            }
+            throw std::runtime_error("No group owns the components from which you are trying to make a slice.");
         }
 
         template<typename T, typename Func>

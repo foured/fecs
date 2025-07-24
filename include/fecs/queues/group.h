@@ -2,24 +2,15 @@
 
 #include <algorithm>
 #include <array>
-#include <tuple>
 #include <type_traits>
 #include <utility>
 
 #include "group_base.h"
-#include "../core/type_index.h"
 #include "../core/types.h"
 #include "../core/type_traits.h"
 #include "../containers/sparse_set.h"
-#include "group_part.h"
 
 namespace fecs {
-
-    template<typename... Ts>
-    class pack_part{};
-
-    template<typename... Ts>
-    class view_part{};
 
     template<typename, typename>
     struct group_args_descriptor;
@@ -68,7 +59,7 @@ namespace fecs {
 
         template<typename Func, size_t... PIs, size_t... VIs>
         void for_each_impl(Func func, std::index_sequence<PIs...>, std::index_sequence<VIs...>) {
-            pool* first_pool = _pools[0];
+            const pool* first_pool = _pools[0];
 
             if constexpr (std::is_invocable_v<Func, PTs&..., VTs&...>) {
                 for (size_t i = 0; i < _next_index; ++i) {
@@ -141,7 +132,7 @@ namespace fecs {
                 }
             }
             else {
-                pool* first_pool = _pools[0];
+                const pool* first_pool = _pools[0];
                 for (size_t i = 0; i < _next_index; ++i) {
                     func(first_pool->get_key_by_index(i), group_base_t::template get_pool<Is>()->get_ref_directly_e(i)...);
                 }
