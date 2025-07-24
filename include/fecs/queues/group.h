@@ -22,6 +22,17 @@ namespace fecs {
     class view_part{};
 
     template<typename, typename>
+    struct group_args_descriptor;
+
+    template<typename... Ts>
+    requires unique_types<Ts...> && (sizeof...(Ts) > 1)
+    struct group_args_descriptor<pack_part<Ts...>, view_part<>> { };
+
+    template<typename... PTs, typename... VTs>
+    requires unique_types<PTs..., VTs...> && (sizeof...(PTs) > 1)
+    struct group_args_descriptor<pack_part<PTs...>, view_part<VTs...>> { };
+
+    template<typename, typename>
     class group;
 
     template<typename... PTs, typename... VTs>
@@ -67,7 +78,7 @@ namespace fecs {
 
                     bool passed = true;
                     for (size_t j = 0; j < v_components::size; ++j) {
-                        if (!_v_pools.contains(page, offset)) {
+                        if (!_v_pools[j]->contains(page, offset)) {
                             passed = false;
                             break;
                         }
@@ -86,7 +97,7 @@ namespace fecs {
 
                     bool passed = true;
                     for (size_t j = 0; j < v_components::size; ++j) {
-                        if (!_v_pools.contains(page, offset)) {
+                        if (!_v_pools[j]->contains(page, offset)) {
                             passed = false;
                             break;
                         }
