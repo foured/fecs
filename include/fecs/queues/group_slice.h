@@ -13,6 +13,7 @@ namespace fecs {
     class group_slice;
 
     template<typename... Ts>
+    requires unique_types<Ts...> && (sizeof...(Ts) > 1)
     class group_slice<pack_part<Ts...>, view_part<>> {
     public:
         using p_components = type_list<Ts...>;
@@ -54,6 +55,7 @@ namespace fecs {
     };
 
     template<typename... PTs, typename... VTs>
+    requires unique_types<PTs..., VTs...> && (sizeof...(PTs) > 1)
     class group_slice<pack_part<PTs...>, view_part<VTs...>> {
     public:
         using p_components = type_list<PTs...>;

@@ -13,17 +13,6 @@
 namespace fecs {
 
     template<typename, typename>
-    struct group_args_descriptor;
-
-    template<typename... Ts>
-    requires unique_types<Ts...> && (sizeof...(Ts) > 1)
-    struct group_args_descriptor<pack_part<Ts...>, view_part<>> { };
-
-    template<typename... PTs, typename... VTs>
-    requires unique_types<PTs..., VTs...> && (sizeof...(PTs) > 1)
-    struct group_args_descriptor<pack_part<PTs...>, view_part<VTs...>> { };
-
-    template<typename, typename>
     class group;
 
     template<typename... PTs, typename... VTs>
@@ -37,7 +26,7 @@ namespace fecs {
         using v_pools_array = std::array<pool*, v_components::size>;
 
         group(const p_pools_array& p_pools, const v_pools_array& v_pools) \
-        : group_base_t(p_pools), _v_pools(v_pools) {}
+            : group_base_t(p_pools), _v_pools(v_pools) {}
 
         template<typename Func>
         requires std::is_invocable_v<Func, PTs&..., VTs&...> || std::is_invocable_v<Func, entity_t, PTs&..., VTs&...>

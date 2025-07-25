@@ -15,7 +15,7 @@
 namespace fecs {
 
     template<typename Key, typename T, size_t chunk_size = 512>
-    requires is_index_type<Key> && (!std::is_pointer_v<T>)
+    requires std::is_unsigned_v<Key> && (!std::is_pointer_v<T>)
     class sparse_set_template : public pool_template<Key> {
     public:
         using pool_t = pool_template<Key>;
@@ -44,7 +44,7 @@ namespace fecs {
                 _keys.push_back(key);
                 set_index(key, index);
 
-                if(_owner != nullptr){
+                if(_owner != nullptr) {
                     _owner->trigger_emplace(key);
                 }
             }
@@ -88,7 +88,7 @@ namespace fecs {
             size_t i1 = get_index(k1);
             size_t i2 = get_index(k2);
 
-            if(i1 == error_index || i2 == error_index || i1 == i2){
+            if(i1 == error_index || i2 == error_index || i1 == i2) [[unlikely]] {
                 return;
             }
 
@@ -143,7 +143,7 @@ namespace fecs {
         T* get_ptr(Key key) {
             size_t index = get_index(key);
 
-            if(index == error_index) {
+            if(index == error_index) [[unlikely]] {
                 return nullptr;
             }
 
@@ -218,7 +218,7 @@ namespace fecs {
             if (index == error_index) return;
 
             size_t last_index = _packed.size() - 1; 
-            if (index != last_index) {
+            if (index != last_index) [[likely]] {
                 std::swap(_packed[index], _packed[last_index]);
                 std::swap(_keys[index], _keys[last_index]);
 

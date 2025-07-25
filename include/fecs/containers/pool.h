@@ -8,7 +8,7 @@
 namespace fecs {
 
     template<typename Key>
-    requires is_index_type<Key>
+    requires std::is_unsigned_v<Key>
     class pool_template {
     public:
 

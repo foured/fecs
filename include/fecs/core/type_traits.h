@@ -19,9 +19,6 @@ namespace fecs {
     template<typename T, typename... Ts>
     constexpr bool contains_type = (std::is_same_v<T, Ts> || ...);
 
-    template<typename T>
-    concept is_index_type = std::is_integral_v<T> && std::is_unsigned_v<T>;
-
     template<typename... Ts>
     struct type_list {
         using types = std::tuple<Ts...>;

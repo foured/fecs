@@ -33,6 +33,13 @@ namespace fecs {
             }
         }
 
+        // Pools management
+
+        template<typename T>
+        void create_pool() {
+            _pools.try_emplace(type_index<T>::value(), std::make_unique<sparse_set<T>>());
+        }
+
         // Components management
 
         template<typename Component, typename... Args>
@@ -47,12 +54,60 @@ namespace fecs {
             sparse_ptr->emplace(entity, std::forward<Args>(args)...);
         }
 
+        // This is unsafe if the pool of Component types does not exist.
+        template<typename Component, typename... Args>
+        requires std::is_constructible_v<Component, Args&&...>
+        void add_component_directly(entity_t entity, Args&&... args) {
+            using sparse_t = sparse_set<Component>;
+
+            sparse_t* sparse_ptr = static_cast<sparse_t*>(_pools.get_ptr(type_index<Component>::value())->get());
+
+            sparse_ptr->emplace(entity, std::forward<Args>(args)...);
+        }
+
+        template<typename Component, typename... Args>
+        requires std::is_constructible_v<Component, Args&&...>
+        void add_component(const std::vector<entity_t>& entities, Args&&... args) {
+            using sparse_t = sparse_set<Component>;
+
+            create_pool<Component>();
+            sparse_t* sparse_ptr = static_cast<sparse_t*>(_pools.get_ptr(type_index<Component>::value())->get());
+
+            for (entity_t entity : entities) {
+                sparse_ptr->emplace(entity, std::forward<Args>(args)...);
+            }
+        }
+
         template<typename Component>
         void remove_component(entity_t entity){
             auto p = find_pool<Component>();
             if(p != nullptr){
                 p->remove(entity);
             }
+        }
+
+        template<typename Component>
+        void remove_component(const std::vector<entity_t>& entities){
+            auto p = find_pool<Component>();
+            if(p == nullptr){
+                return;
+            }
+
+            for (entity_t entity : entities) {
+                p->remove(entity);
+            }
+        }
+
+        // This is unsafe if the pool of Component types does not exist.
+        template<typename Component>
+        void remove_component_directly(entity_t entity){
+            auto p = find_pool<Component>();
+            p->remove(entity);
+        }
+
+        template<typename... Components>
+        void remove_components(entity_t entity) {
+            (remove_component<Components>(entity), ...);
         }
 
         template<typename Component>
@@ -65,12 +120,12 @@ namespace fecs {
         }
 
         template<typename... Ts>
-        void create_group(group_args_descriptor<pack_part<Ts...>, view_part<>>) {
+        void create_group(queue_args_descriptor<pack_part<Ts...>, view_part<>>) {
             create_group<Ts...>();
         }
 
         template<typename... PTs, typename... VTs>
-        void create_group(group_args_descriptor<pack_part<PTs...>, view_part<VTs...>>) {
+        void create_group(queue_args_descriptor<pack_part<PTs...>, view_part<VTs...>>) {
             create_group<PTs...>(view_part<VTs...>{});
         }
 
@@ -126,12 +181,12 @@ namespace fecs {
         // Different 'iterators'
 
         template<typename... Ts>
-        fecs::group<pack_part<Ts...>, view_part<>>* group(group_args_descriptor<pack_part<Ts...>, view_part<>>) {
+        fecs::group<pack_part<Ts...>, view_part<>>* group(queue_args_descriptor<pack_part<Ts...>, view_part<>>) {
             return group<Ts...>();
         }
 
         template<typename... PTs, typename... VTs>
-        fecs::group<pack_part<PTs...>, view_part<VTs...>>* group(group_args_descriptor<pack_part<PTs...>, view_part<VTs...>>) {
+        fecs::group<pack_part<PTs...>, view_part<VTs...>>* group(queue_args_descriptor<pack_part<PTs...>, view_part<VTs...>>) {
             return group<PTs...>(view_part<VTs...>{});
         }
 
@@ -174,6 +229,19 @@ namespace fecs {
         }
 
         template<typename... Ts>
+        requires unique_types<Ts...> && (sizeof...(Ts) > 1)
+        fecs::group_slice<pack_part<Ts...>, view_part<>> group_slice(queue_args_descriptor<pack_part<Ts...>, view_part<>>) {
+            return group_slice<Ts...>();
+        }
+
+        template<typename... PTs, typename... VTs>
+        requires unique_types<PTs..., VTs...> && (sizeof...(PTs) > 1)
+        fecs::group_slice<pack_part<PTs...>, view_part<VTs...>> group_slice(queue_args_descriptor<pack_part<PTs...>, view_part<VTs...>>) {
+            return group_slice<PTs...>(view_part<VTs...>{});
+        }
+
+        template<typename... Ts>
+        requires unique_types<Ts...> && (sizeof...(Ts) > 1)
         fecs::group_slice<pack_part<Ts...>, view_part<>> group_slice() {
             using slice_t = fecs::group_slice<pack_part<Ts...>, view_part<>>;
 
@@ -193,6 +261,7 @@ namespace fecs {
         }
 
         template<typename... PTs, typename... VTs>
+        requires unique_types<PTs..., VTs...> && (sizeof...(PTs) > 1)
         fecs::group_slice<pack_part<PTs...>, view_part<VTs...>> group_slice(view_part<VTs...>) {
             using slice_t = fecs::group_slice<pack_part<PTs...>, view_part<VTs...>>;
 
@@ -249,7 +318,7 @@ namespace fecs {
         pool* find_or_create_pool() {
             id_index_t t_index = type_index<T>::value();
 
-            size_t index = _pools.try_emplace(t_index, std::make_unique<sparse_set<T>>());
+            const size_t index = _pools.try_emplace(t_index, std::make_unique<sparse_set<T>>());
 
             return _pools.get_ref_directly(index).get();
         }
