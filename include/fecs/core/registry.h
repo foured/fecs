@@ -49,7 +49,7 @@ namespace fecs {
 
             pool* pool_ptr = find_or_create_pool<Component>();
 
-            sparse_t* sparse_ptr = static_cast<sparse_t*>(pool_ptr);
+            auto sparse_ptr = static_cast<sparse_t*>(pool_ptr);
 
             sparse_ptr->emplace(entity, std::forward<Args>(args)...);
         }
@@ -71,7 +71,7 @@ namespace fecs {
             using sparse_t = sparse_set<Component>;
 
             create_pool<Component>();
-            sparse_t* sparse_ptr = static_cast<sparse_t*>(_pools.get_ptr(type_index<Component>::value())->get());
+            auto sparse_ptr = static_cast<sparse_t*>(_pools.get_ptr(type_index<Component>::value())->get());
 
             for (entity_t entity : entities) {
                 sparse_ptr->emplace(entity, std::forward<Args>(args)...);
