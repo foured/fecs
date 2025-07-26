@@ -1,5 +1,8 @@
 # fecs — Fast ECS for C++
 
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+![WIP](https://img.shields.io/badge/status-work_in_progress-orange)
+
 **fecs** is a minimal and efficient Entity Component System (ECS) library for C++, designed to be simple, fast, and easy to integrate into any project.
 
 > 🚧 **Work in Progress**: This library is still in early development and not yet feature complete.
