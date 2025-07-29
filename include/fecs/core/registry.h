@@ -310,8 +310,10 @@ namespace fecs {
         }
 
     private:
-        sparse_set_template<id_index_t, std::unique_ptr<pool>> _pools;
-        sparse_set_template<id_index_t, std::unique_ptr<group_descriptor>> _groups;
+        friend class entity_copyer;
+
+        unique_ptr_sparse_set<pool> _pools;
+        unique_ptr_sparse_set<group_descriptor> _groups;
         entity_t _entity_counter = 0;
 
         template<typename T>

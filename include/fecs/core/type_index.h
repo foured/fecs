@@ -4,6 +4,8 @@ namespace fecs {
 
     using id_index_t = size_t;
 
+    constexpr id_index_t error_id_index = std::numeric_limits<id_index_t>::max();
+
     namespace details{
 
         struct type_index final {

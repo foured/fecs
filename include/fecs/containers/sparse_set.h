@@ -9,6 +9,7 @@
 #include "../core/type_traits.h"
 #include "../util/log.h"
 #include "pool.h"
+#include "fecs/core/type_index.h"
 
 #define SPARSE_MAX_SIZE 512
 
@@ -110,17 +111,18 @@ namespace fecs {
             return _sparses[page][offset] != error_index;
         }
 
-        bool contains(size_t page, size_t offset) const override{
+        [[nodiscard]] bool contains(size_t page, size_t offset) const override{
             if(page > _sparses.size()) return false;
             return _sparses[page][offset != error_index];
         }
 
-        size_t size() const override{
+        [[nodiscard]] size_t size() const override{
             return _packed.size();
         }
 
         void shrink_to_fit() override {
             _packed.shrink_to_fit();
+            _sparses.shrink_to_fit();
             _keys.shrink_to_fit();
         }
 
@@ -272,5 +274,8 @@ namespace fecs {
 
     template<typename T>
     using sparse_set = sparse_set_template<entity_t, T, SPARSE_MAX_SIZE>;
+
+    template<typename T>
+    using unique_ptr_sparse_set = sparse_set_template<id_index_t, std::unique_ptr<T>>;
 
 }

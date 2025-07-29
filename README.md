@@ -12,6 +12,22 @@
 
 ---
 
+## ✨ Features
+
+### ✅ Core Functionality
+- [x] 🧱 **Entity creation** — lightweight `uint32_t`-based entities
+- [x] 🧩 **Component management** — add/remove with optional constructor args
+- [x] 🧹 **Component cleanup** — auto-removal on entity destruction
+- [x] 🏗 **Entity builder** — simplifies adding multiple components
+
+### 🔁 Iteration Queues
+- [x] 🔍 **Simple queues** — `view`, `runner`, `direct_for_each` for lightweight iteration
+- [x] ⚡ **Fast owning queues** — `group`, `group_slice` for cache-friendly iteration
+- [x] 👀 **View support in groups** — combine owned + viewed components
+- [ ] 🚫 **Excluder** — filter out specific component types from iteration
+
+---
+
 # 🚀 How to Add to Project
 
 ## 🔧 Step 1: Clone the Repository
@@ -107,6 +123,20 @@ struct component_2 {
 };
 
 registry.add_component<component_2>(e, "123456789");
+```
+
+If you need to add a lot of components and you don't want to pass
+entity every time
+
+```cpp
+fecs::entity_builder builder(registry);
+builder.add_component<component_1>(1, 0.1f);
+fecs::entity_t e = builder.get();
+```
+Or simpler
+
+```cpp
+fecs::entity_t e = fecs::entity_builder(registry).with<component_1>(1, 0.1f).get();
 ```
 
 ### ➕ Bulk Component Addition
